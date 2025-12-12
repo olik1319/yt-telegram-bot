@@ -7,7 +7,7 @@ import yt_dlp
 import threading
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
-app = Flask(name)
+app = Flask(__name__)
 
 @app.route("/")
 def home():
@@ -54,7 +54,7 @@ def run_bot():
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
     application.run_polling()
 
-if name == "main":
+if __name__ == "__main__":
     threading.Thread(target=run_bot, daemon=True).start()
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
