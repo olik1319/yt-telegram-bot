@@ -1,10 +1,9 @@
 import os
-import logging
+import asyncio
 from flask import Flask
 from telegram import Update
 from telegram.ext import Application, MessageHandler, filters, ContextTypes
 import yt_dlp
-import threading
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 app = Flask(__name__)
@@ -12,8 +11,6 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     return "Bot is running"
-
-logging.basicConfig(level=logging.INFO)
 
 async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
@@ -49,12 +46,16 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"❌ Ошибка: {e}")
 
-def run_bot():
+async def main():
     application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_link))
-    application.run_polling()
+    await application.initialize()
+    await application.start()
+    await application.updater.start_polling()
+    await asyncio.Event().wait()  # держит бота живым
 
 if __name__ == "__main__":
-    threading.Thread(target=run_bot, daemon=True).start()
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    # Запускаем Flask в отдельном процессе
+    import threading
+    threading.Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000))), daemon=True).start()
+    asyncio.run(main())
