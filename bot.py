@@ -24,7 +24,10 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     ydl_opts = {
         'outtmpl': '/tmp/%(title)s.%(ext)s',
-        'format': 'best',
+        'format': 'best[height<=720][ext=mp4]/best[height<=720]',
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        },
     }
 
     try:
@@ -52,10 +55,9 @@ async def main():
     await application.initialize()
     await application.start()
     await application.updater.start_polling()
-    await asyncio.Event().wait()  # держит бота живым
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    # Запускаем Flask в отдельном процессе
     import threading
     threading.Thread(target=lambda: app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000))), daemon=True).start()
     asyncio.run(main())
